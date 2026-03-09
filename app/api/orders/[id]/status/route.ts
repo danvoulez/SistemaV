@@ -1,13 +1,6 @@
-import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
-
-const VALID_TRANSITIONS: Record<string, string[]> = {
-  draft: ['confirmed', 'cancelled'],
-  confirmed: ['paid', 'packed', 'cancelled'],
-  paid: ['packed', 'cancelled'],
-  packed: ['shipped'],
-  shipped: ['delivered']
-};
+import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { updateOrderStatus } from '@/services/orders';
 
 export async function PATCH(
   request: NextRequest,
@@ -32,31 +25,12 @@ export async function PATCH(
   const body = await request.json();
   const { status } = body as { status: string };
 
-  // Validate transition
-  const { data: order } = await supabase
-    .from('sales_orders')
-    .select('status')
-    .eq('id', id)
-    .eq('tenant_id', profile.tenant_id)
-    .single();
-
-  if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-
-  const allowed = VALID_TRANSITIONS[order.status] ?? [];
-  if (!allowed.includes(status)) {
-    return NextResponse.json({
-      error: `Cannot transition from ${order.status} to ${status}`
-    }, { status: 400 });
+  try {
+    const order = await updateOrderStatus(id, profile.tenant_id, status);
+    return NextResponse.json({ order });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Erro ao atualizar status';
+    const code = message === 'Order not found' ? 404 : 400;
+    return NextResponse.json({ error: message }, { status: code });
   }
-
-  const { data, error } = await supabase
-    .from('sales_orders')
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('tenant_id', profile.tenant_id)
-    .select()
-    .single();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ order: data });
 }

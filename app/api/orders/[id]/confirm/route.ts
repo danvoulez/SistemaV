@@ -1,5 +1,6 @@
-import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
+import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { confirmOrder } from '@/services/orders';
 
 export async function POST(
   request: NextRequest,
@@ -21,15 +22,11 @@ export async function POST(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { data, error } = await supabase
-    .from('sales_orders')
-    .update({ status: 'confirmed', updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('tenant_id', profile.tenant_id)
-    .eq('status', 'draft')
-    .select()
-    .single();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ order: data });
+  try {
+    const order = await confirmOrder(id, profile.tenant_id);
+    return NextResponse.json({ order });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Erro ao confirmar pedido';
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 }

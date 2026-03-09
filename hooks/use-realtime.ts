@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback, useRef } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
+import { REALTIME_LISTEN_TYPES } from '@supabase/supabase-js';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface UseRealtimeOptions {
@@ -30,7 +31,7 @@ export function useRealtime({
     channelRef.current = supabase
       .channel(channelName)
       .on(
-        'postgres_changes' as never,
+        REALTIME_LISTEN_TYPES.POSTGRES_CHANGES,
         {
           event: '*',
           schema,

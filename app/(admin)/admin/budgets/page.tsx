@@ -15,7 +15,7 @@ export default async function BudgetsPage() {
   const budgets = await getBudgets(user.tenantId);
 
   const rows = budgets.map((budget) => {
-    const category = (budget as { category?: { name?: string } }).category;
+    const category = budget.category;
     const allocated = Number(budget.allocated_amount ?? 0);
     const spent = Number(budget.spent_amount ?? 0);
     const pct = allocated > 0 ? Math.min(100, (spent / allocated) * 100) : 0;

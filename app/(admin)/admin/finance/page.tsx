@@ -20,7 +20,7 @@ export default async function FinancePage() {
   ]);
 
   const entryRows = entries.map((entry) => {
-    const category = (entry as { category?: { name?: string } }).category;
+    const category = entry.category;
     return [
       <span key="date" className="text-slate-500 text-xs">{new Date(entry.occurred_at).toLocaleDateString('pt-BR')}</span>,
       <span key="desc">{entry.description ?? '—'}</span>,

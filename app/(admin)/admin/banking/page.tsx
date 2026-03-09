@@ -19,7 +19,7 @@ export default async function BankingPage() {
   ]);
 
   const txRows = transactions.map((tx) => {
-    const account = (tx as { account?: { name?: string } }).account;
+    const account = tx.account;
     const isIncome = tx.type === 'income';
     const isExpense = tx.type === 'expense';
     return [

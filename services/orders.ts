@@ -1,6 +1,14 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import type { SalesOrder } from '@/types/database';
 
+export const VALID_TRANSITIONS: Record<string, string[]> = {
+  draft: ['confirmed', 'cancelled'],
+  confirmed: ['paid', 'packed', 'cancelled'],
+  paid: ['packed', 'cancelled'],
+  packed: ['shipped'],
+  shipped: ['delivered'],
+};
+
 export async function getOrders(tenantId: string, status?: string): Promise<SalesOrder[]> {
   const supabase = await createSupabaseServerClient();
   let query = supabase
@@ -90,6 +98,34 @@ export async function confirmOrder(id: string, tenantId: string) {
     .eq('id', id)
     .eq('tenant_id', tenantId)
     .eq('status', 'draft')
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateOrderStatus(id: string, tenantId: string, status: string) {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: order } = await supabase
+    .from('sales_orders')
+    .select('status')
+    .eq('id', id)
+    .eq('tenant_id', tenantId)
+    .single();
+
+  if (!order) throw new Error('Order not found');
+
+  const allowed = VALID_TRANSITIONS[order.status] ?? [];
+  if (!allowed.includes(status)) {
+    throw new Error(`Cannot transition from ${order.status} to ${status}`);
+  }
+
+  const { data, error } = await supabase
+    .from('sales_orders')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('tenant_id', tenantId)
     .select()
     .single();
   if (error) throw error;
