@@ -17,7 +17,7 @@ export default function NewProductPage() {
     sku: '',
     barcode: '',
     description: '',
-    sale_price: '',
+    price: '',
     cost_price: '',
     category: '',
   });
@@ -52,7 +52,7 @@ export default function NewProductPage() {
           sku: form.sku.trim() || null,
           barcode: form.barcode.trim() || null,
           description: form.description.trim() || null,
-          sale_price: form.sale_price ? parseFloat(form.sale_price) : null,
+          price: form.price ? parseFloat(form.price) : null,
           cost_price: form.cost_price ? parseFloat(form.cost_price) : null,
           category: form.category.trim() || null,
           is_active: true,
@@ -149,14 +149,14 @@ export default function NewProductPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="sale_price" className={labelClass}>Preço de Venda (R$)</label>
+            <label htmlFor="price" className={labelClass}>Preço de Venda (R$)</label>
             <input
-              id="sale_price"
-              name="sale_price"
+              id="price"
+              name="price"
               type="number"
               step="0.01"
               min="0"
-              value={form.sale_price}
+              value={form.price}
               onChange={handleChange}
               placeholder="0,00"
               className={inputClass}

@@ -27,15 +27,23 @@ export default async function ClientFilesPage() {
 
   const supabase = await createSupabaseServerClient();
 
-  // Fetch digital_files owned by this person
-  const { data: digitalFiles } = await supabase
-    .from('digital_files')
-    .select('id, title, description, file_type, file_size, storage_path, created_at')
+  // Fetch objects (digital_file type) owned by this person, with nested digital_files data
+  const { data: objectsData } = await supabase
+    .from('objects')
+    .select('id, title, description, created_at, digital_files(mime_type, size_bytes)')
     .eq('tenant_id', user.tenantId)
+    .eq('object_type', 'digital_file')
     .eq('owner_person_id', user.personId)
     .order('created_at', { ascending: false });
 
-  const files = digitalFiles ?? [];
+  const files = (objectsData ?? []).map((o) => ({
+    id: o.id,
+    title: o.title,
+    description: o.description,
+    created_at: o.created_at,
+    file_type: (o.digital_files as Array<{ mime_type: string | null; size_bytes: number | null }>)?.[0]?.mime_type ?? null,
+    file_size: (o.digital_files as Array<{ mime_type: string | null; size_bytes: number | null }>)?.[0]?.size_bytes ?? null,
+  }));
 
   return (
     <div className="space-y-6">

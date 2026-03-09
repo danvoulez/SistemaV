@@ -20,7 +20,7 @@ interface Product {
   id: string;
   name: string;
   sku?: string;
-  sale_price?: number;
+  price?: number;
 }
 
 interface OrderItem {
@@ -69,7 +69,7 @@ export default function NewOrderPage() {
           .order('full_name'),
         supabase
           .from('products')
-          .select('id, name, sku, sale_price')
+          .select('id, name, sku, price')
           .eq('tenant_id', profile.tenant_id)
           .eq('is_active', true)
           .order('name'),
@@ -103,7 +103,7 @@ export default function NewOrderPage() {
             product_id: value as string,
             product_name: product?.name ?? '',
             sku: product?.sku ?? '',
-            unit_price: Number(product?.sale_price ?? 0),
+            unit_price: Number(product?.price ?? 0),
           };
         }
         return { ...item, [field]: value };
