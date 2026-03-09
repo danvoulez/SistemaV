@@ -1,20 +1,49 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
+import type { DashboardStats } from '@/types/database';
 
-export async function getAdminDashboardStats(tenantId: string) {
-  const supabase = createSupabaseServerClient();
+export async function getAdminDashboardStats(tenantId: string): Promise<DashboardStats> {
+  const supabase = await createSupabaseServerClient();
 
-  const [{ data: orders }, { data: deliveries }, { data: financeEntries }, { data: tasks }, { data: lowStock }] = await Promise.all([
-    supabase.from('sales_orders').select('id,total_amount,status').eq('tenant_id', tenantId),
-    supabase.from('deliveries').select('id,status').eq('tenant_id', tenantId),
-    supabase.from('finance_entries').select('id,type,amount').eq('tenant_id', tenantId),
-    supabase.from('tasks').select('id,status').eq('tenant_id', tenantId),
-    supabase.from('inventory_balances').select('id,quantity_available').eq('tenant_id', tenantId).lte('quantity_available', 0)
+  const [
+    { data: orders },
+    { data: deliveries },
+    { data: financeEntries },
+    { data: tasks },
+    { data: lowStock }
+  ] = await Promise.all([
+    supabase
+      .from('sales_orders')
+      .select('id, total_amount, status, order_number, created_at, customer_person_id')
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('deliveries')
+      .select('id, status, created_at, order_id')
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('finance_entries')
+      .select('id, type, amount')
+      .eq('tenant_id', tenantId),
+    supabase
+      .from('tasks')
+      .select('id, status')
+      .eq('tenant_id', tenantId),
+    supabase
+      .from('inventory_balances')
+      .select('id, quantity_available')
+      .eq('tenant_id', tenantId)
+      .lte('quantity_available', 0)
   ]);
 
   const totalSales = (orders ?? []).reduce((sum, o) => sum + Number(o.total_amount ?? 0), 0);
   const pendingDeliveries = (deliveries ?? []).filter((d) => d.status !== 'delivered').length;
-  const revenue = (financeEntries ?? []).filter((e) => e.type === 'income').reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
-  const expense = (financeEntries ?? []).filter((e) => e.type === 'expense').reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
+  const revenue = (financeEntries ?? [])
+    .filter((e) => e.type === 'income')
+    .reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
+  const expense = (financeEntries ?? [])
+    .filter((e) => e.type === 'expense')
+    .reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
   const activeTasks = (tasks ?? []).filter((t) => t.status !== 'done').length;
 
   return {
@@ -24,6 +53,8 @@ export async function getAdminDashboardStats(tenantId: string) {
     revenue,
     expense,
     activeTasks,
-    lowStockItems: (lowStock ?? []).length
+    lowStockItems: (lowStock ?? []).length,
+    recentOrders: (orders ?? []).slice(0, 5) as never,
+    recentDeliveries: (deliveries ?? []).slice(0, 5) as never
   };
 }

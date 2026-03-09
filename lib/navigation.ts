@@ -8,9 +8,13 @@ export const adminNav: NavItem[] = [
   { label: 'Deliveries', href: '/admin/deliveries' },
   { label: 'Banking', href: '/admin/banking' },
   { label: 'Finance', href: '/admin/finance' },
-  { label: 'Office', href: '/admin/office' },
-  { label: 'Files', href: '/admin/files' },
+  { label: 'Budgets', href: '/admin/budgets' },
   { label: 'Inventory', href: '/admin/inventory' },
+  { label: 'Tasks', href: '/admin/tasks' },
+  { label: 'Notes', href: '/admin/notes' },
+  { label: 'Calendar', href: '/admin/calendar' },
+  { label: 'Files', href: '/admin/files' },
+  { label: 'AI Assistant', href: '/admin/ai' },
   { label: 'Reports', href: '/admin/reports' },
   { label: 'Settings', href: '/admin/settings' }
 ];
