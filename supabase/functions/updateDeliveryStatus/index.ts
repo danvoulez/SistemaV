@@ -1,10 +1,15 @@
-import { AnyPayloadSchema, adminClient, json, parsePayload } from '../_shared.ts';
+import { AnyPayloadSchema, adminClient, getCallerTenantId, json, parsePayload } from '../_shared.ts';
 
 Deno.serve(async (req) => {
   try {
-    const payload = await parsePayload(req, AnyPayloadSchema);
+    const [payload, callerTenantId] = await Promise.all([
+      parsePayload(req, AnyPayloadSchema),
+      getCallerTenantId(req),
+    ]);
     const supabase = adminClient();
-    const { data, error } = await supabase.rpc('api_updateDeliveryStatus', payload);
+    const { data, error } = await supabase.rpc('api_updateDeliveryStatus', {
+      payload: { ...payload, caller_tenant_id: callerTenantId },
+    });
 
     if (error) {
       return json({ ok: false, error: error.message }, 400);

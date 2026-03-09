@@ -8,13 +8,16 @@ import { EmptyState } from '@/components/empty-state';
 import { Upload, File, Download, Loader2 } from 'lucide-react';
 
 interface UploadedFile {
-  id: string;
+  id: string; // objects.id
   title: string;
   description: string | null;
-  file_type: string | null;
-  file_size: number | null;
-  storage_path: string;
   created_at: string;
+  digital_files: Array<{
+    id: string;
+    storage_path: string;
+    mime_type: string | null;
+    size_bytes: number | null;
+  }>;
 }
 
 export default function OpsFilesPage() {
@@ -43,9 +46,10 @@ export default function OpsFilesPage() {
         .single();
 
       const { data, error: filesErr } = await supabase
-        .from('digital_files')
-        .select('*')
+        .from('objects')
+        .select('id, title, description, created_at, digital_files(id, storage_path, mime_type, size_bytes)')
         .eq('tenant_id', profile?.tenant_id ?? '')
+        .eq('object_type', 'digital_file')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -81,7 +85,6 @@ export default function OpsFilesPage() {
         .eq('id', user.id)
         .single();
 
-      const ext = file.name.split('.').pop();
       const storagePath = `${profile?.tenant_id}/${Date.now()}-${file.name}`;
 
       const { error: storageErr } = await supabase.storage
@@ -90,16 +93,22 @@ export default function OpsFilesPage() {
 
       if (storageErr) throw storageErr;
 
-      // Create digital_file record
-      const { error: recordErr } = await supabase.from('digital_files').insert({
-        tenant_id: profile?.tenant_id,
-        title: title.trim(),
-        description: description.trim() || null,
-        storage_path: storagePath,
-        file_type: file.type || ext || null,
-        file_size: file.size,
-        owner_person_id: profile?.person_id ?? null,
-        created_by: user.id,
+      // Create object + digital_file records via RPC
+      const { error: recordErr } = await supabase.rpc('api_uploadLinkedFile', {
+        payload: {
+          tenant_id: profile?.tenant_id,
+          owner_type: 'tenant',
+          owner_tenant_id: profile?.tenant_id,
+          title: title.trim(),
+          description: description.trim() || null,
+          status: 'active',
+          storage_bucket: 'private-files',
+          storage_path: storagePath,
+          mime_type: file.type || null,
+          size_bytes: file.size,
+          uploaded_by: user.id,
+          created_by: user.id,
+        },
       });
 
       if (recordErr) throw recordErr;
@@ -123,7 +132,7 @@ export default function OpsFilesPage() {
     if (data?.signedUrl) window.open(data.signedUrl, '_blank');
   };
 
-  const formatSize = (bytes: number | null) => {
+  const formatSize = (bytes: number | null | undefined) => {
     if (!bytes) return '—';
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -209,35 +218,42 @@ export default function OpsFilesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {files.map((f) => (
-                  <tr key={f.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <File size={14} className="text-slate-400 shrink-0" />
-                        <div>
-                          <p className="font-medium text-slate-800">{f.title}</p>
-                          {f.description && (
-                            <p className="text-xs text-slate-400">{f.description}</p>
-                          )}
+                {files.map((f) => {
+                  const df = f.digital_files?.[0];
+                  return (
+                    <tr key={f.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <File size={14} className="text-slate-400 shrink-0" />
+                          <div>
+                            <p className="font-medium text-slate-800">{f.title}</p>
+                            {f.description && (
+                              <p className="text-xs text-slate-400">{f.description}</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-500 text-xs font-mono">{f.file_type ?? '—'}</td>
-                    <td className="px-4 py-3 text-slate-500">{formatSize(f.file_size)}</td>
-                    <td className="px-4 py-3 text-slate-500">
-                      {new Date(f.created_at).toLocaleDateString('pt-BR')}
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => getDownloadUrl(f.storage_path)}
-                        className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        <Download size={12} />
-                        Baixar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 text-xs font-mono">{df?.mime_type ?? '—'}</td>
+                      <td className="px-4 py-3 text-slate-500">{formatSize(df?.size_bytes)}</td>
+                      <td className="px-4 py-3 text-slate-500">
+                        {new Date(f.created_at).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3">
+                        {df?.storage_path ? (
+                          <button
+                            onClick={() => getDownloadUrl(df.storage_path)}
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            <Download size={12} />
+                            Baixar
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-400">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
