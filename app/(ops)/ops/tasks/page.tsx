@@ -61,7 +61,7 @@ export default async function OpsTasksPage() {
                 </div>
               ) : (
                 col.tasks.map((task) => {
-                  const assignee = (task as any).assignee;
+                  const assignee = task.assignee;
                   const isOverdue =
                     task.due_date &&
                     task.status !== 'done' &&

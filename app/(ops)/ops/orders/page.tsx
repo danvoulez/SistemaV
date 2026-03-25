@@ -68,7 +68,7 @@ export default async function OpsOrdersPage({ searchParams }: Props) {
           <Link key="num" href={`/ops/orders/${o.id}`} className="font-medium text-blue-600 hover:underline">
             {o.order_number}
           </Link>,
-          <span key="name">{(o as any).customer?.full_name ?? '—'}</span>,
+          <span key="name">{o.customer?.full_name ?? '—'}</span>,
           <StatusBadge key="status" status={o.status} />,
           <StatusBadge key="payment" status={o.payment_status ?? 'pending'} />,
           <span key="total">{fmt(o.total_amount ?? 0)}</span>,

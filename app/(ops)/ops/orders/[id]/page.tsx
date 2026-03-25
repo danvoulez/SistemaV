@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/page-header';
 import { Btn } from '@/components/btn';
 import { ArrowLeft, User, Package, Truck } from 'lucide-react';
 import { OpsOrderActions } from './order-actions';
+import type { Delivery, SalesOrder, SalesOrderItem } from '@/types/database';
 
 const fmt = (n: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
@@ -15,11 +16,16 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+type OrderDetails = SalesOrder & {
+  items?: SalesOrderItem[];
+  deliveries?: Pick<Delivery, 'id' | 'status' | 'delivery_type' | 'scheduled_for'>[];
+};
+
 export default async function OpsOrderDetailPage({ params }: Props) {
   const user = await requireMemberOrAdmin();
   const { id } = await params;
 
-  let order: any;
+  let order: OrderDetails;
   try {
     order = await getOrderById(id, user.tenantId);
   } catch {
@@ -27,8 +33,8 @@ export default async function OpsOrderDetailPage({ params }: Props) {
   }
 
   const customer = order.customer;
-  const items: any[] = order.items ?? [];
-  const deliveries: any[] = order.deliveries ?? [];
+  const items = order.items ?? [];
+  const deliveries = order.deliveries ?? [];
   const firstDelivery = deliveries[0];
 
   return (
@@ -163,7 +169,7 @@ export default async function OpsOrderDetailPage({ params }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {items.map((item: any) => (
+              {items.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50">
                   <td className="px-5 py-3 text-slate-800 font-medium">{item.product_name_snapshot ?? '—'}</td>
                   <td className="px-5 py-3 text-slate-500">{item.sku_snapshot ?? '—'}</td>
