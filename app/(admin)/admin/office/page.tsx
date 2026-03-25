@@ -2,7 +2,6 @@ import { getAuthUser } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { PageHeader } from '@/components/page-header';
 import { KpiCard } from '@/components/kpi-card';
-import { Btn } from '@/components/btn';
 import Link from 'next/link';
 import { ClipboardList, StickyNote, Calendar, FolderOpen, ArrowRight } from 'lucide-react';
 

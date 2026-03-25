@@ -4,7 +4,6 @@ import { DataTable } from '@/components/data-table';
 import { StatusBadge } from '@/components/status-badge';
 import { PageHeader } from '@/components/page-header';
 import { KpiCard } from '@/components/kpi-card';
-import { Btn } from '@/components/btn';
 import { Warehouse, MapPin, TrendingUp, AlertTriangle } from 'lucide-react';
 
 export default async function InventoryPage() {
