@@ -38,7 +38,6 @@ export default function NewOrderPage() {
 
   const [people, setPeople] = useState<Person[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [tenantId, setTenantId] = useState<string | null>(null);
 
   const [customerId, setCustomerId] = useState('');
   const [notes, setNotes] = useState('');
@@ -59,7 +58,6 @@ export default function NewOrderPage() {
         .single();
 
       if (!profile) return;
-      setTenantId(profile.tenant_id);
 
       const [{ data: peopleData }, { data: productsData }] = await Promise.all([
         supabase
@@ -127,48 +125,15 @@ export default function NewOrderPage() {
     setError(null);
 
     try {
-      const supabase = createSupabaseBrowserClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Não autenticado');
-
-      const orderNumber = `ORD-${Date.now()}`;
-
-      const { data: order, error: orderError } = await supabase
-        .from('sales_orders')
-        .insert({
-          tenant_id: tenantId,
-          customer_person_id: customerId,
-          order_number: orderNumber,
-          status: 'draft',
-          payment_status: 'pending',
-          subtotal_amount: subtotal,
-          discount_amount: 0,
-          delivery_amount: 0,
-          total_amount: subtotal,
-          notes: notes.trim() || null,
-        })
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      const lineItems = items.map((item) => ({
-        tenant_id: tenantId,
-        order_id: order.id,
-        product_id: item.product_id || null,
-        product_name_snapshot: item.product_name,
-        sku_snapshot: item.sku || null,
-        unit_price: Number(item.unit_price),
-        quantity: Number(item.quantity),
-        discount_amount: 0,
-        line_total: Number(item.unit_price) * Number(item.quantity),
-      }));
-
-      const { error: itemsError } = await supabase.from('sales_order_items').insert(lineItems);
-      if (itemsError) throw itemsError;
-
-      router.push(`/admin/orders/${order.id}`);
-    } catch (err: unknown) {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId, notes: notes.trim() || undefined, items })
+      });
+      const body = await response.json() as { orderId?: string; error?: string };
+      if (!response.ok || !body.orderId) throw new Error(body.error ?? 'Erro ao criar pedido');
+      router.push(`/admin/orders/${body.orderId}`);
+    } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Erro ao criar pedido');
     } finally {
       setLoading(false);

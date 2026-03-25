@@ -68,7 +68,7 @@ export function TopNav({ title, userName, userRole, userEmail }: TopNavProps) {
                     </div>
                   )}
                   <button
-                    onClick={() => { setMenuOpen(false); }}
+                    onClick={() => { setMenuOpen(false); router.push('/client/profile'); }}
                     className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
                   >
                     <User size={14} />

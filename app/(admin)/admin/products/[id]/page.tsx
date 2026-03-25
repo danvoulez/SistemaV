@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getAuthUser } from '@/lib/auth';
 import { getProductById } from '@/services/products';
@@ -96,11 +95,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </div>
       )}
 
-      <div className="flex gap-3">
-        <Btn href={`/admin/products/${product.id}/edit`} variant="secondary">
-          Editar Produto
-        </Btn>
-      </div>
     </div>
   );
 }

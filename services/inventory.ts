@@ -144,3 +144,20 @@ export async function recordInventoryMovement(
 
   return movement as InventoryMovement;
 }
+
+
+export async function getMerchandiseOptions(tenantId: string): Promise<Array<{ id: string; label: string; sku: string }>> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('merchandise')
+    .select('id, sku, object:objects!object_id(title)')
+    .eq('tenant_id', tenantId)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((m) => ({
+    id: m.id,
+    sku: m.sku,
+    label: (m.object as { title?: string } | null)?.title ?? m.sku
+  }));
+}

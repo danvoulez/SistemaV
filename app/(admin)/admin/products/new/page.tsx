@@ -63,7 +63,7 @@ export default function NewProductPage() {
       if (insertError) throw insertError;
 
       router.push(`/admin/products/${product.id}`);
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Erro ao criar produto');
     } finally {
       setLoading(false);

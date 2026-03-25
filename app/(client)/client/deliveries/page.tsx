@@ -50,7 +50,7 @@ export default async function ClientDeliveriesPage() {
   };
 
   // Filter only deliveries for this person's orders
-  const myDeliveries = ((deliveries ?? []) as unknown as DeliveryRow[]).filter(
+  const myDeliveries = ((deliveries ?? []) as any as DeliveryRow[]).filter(
     (d) => d.order?.customer_person_id === user.personId
   );
 

@@ -1,6 +1,6 @@
 import { Plus, TrendingUp, TrendingDown, Scale } from 'lucide-react';
 import { getAuthUser } from '@/lib/auth';
-import { getFinanceEntries, getFinanceSummary, getFinanceCategories } from '@/services/finance';
+import { getFinanceEntries, getFinanceSummary } from '@/services/finance';
 import { DataTable } from '@/components/data-table';
 import { StatusBadge } from '@/components/status-badge';
 import { PageHeader } from '@/components/page-header';
