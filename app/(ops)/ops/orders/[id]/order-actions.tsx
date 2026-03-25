@@ -38,8 +38,9 @@ export function OpsOrderActions({ orderId, currentStatus }: Props) {
         .eq('id', orderId);
       if (err) throw err;
       router.refresh();
-    } catch (e: any) {
-      setError(e.message ?? 'Erro ao atualizar status.');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Erro ao atualizar status.';
+      setError(message);
     } finally {
       setLoading(false);
     }

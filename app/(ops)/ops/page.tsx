@@ -68,7 +68,7 @@ export default async function OpsDashboardPage() {
             <Link key={o.id} href={`/ops/orders/${o.id}`} className="font-medium text-blue-600 hover:underline">
               {o.order_number}
             </Link>,
-            <span key="name">{(o as any).customer?.full_name ?? '—'}</span>,
+            <span key="name">{o.customer?.full_name ?? '—'}</span>,
             <StatusBadge key="status" status={o.status} />,
             <span key="total">{fmt(o.total_amount ?? 0)}</span>,
             <span key="date">{new Date(o.created_at).toLocaleDateString('pt-BR')}</span>,
@@ -88,9 +88,9 @@ export default async function OpsDashboardPage() {
           emptyMessage="Nenhuma entrega pendente."
           rows={recentPendingDeliveries.map((d) => [
             <Link key={d.id} href={`/ops/deliveries/${d.id}`} className="font-medium text-blue-600 hover:underline">
-              {(d as any).order?.order_number ?? '—'}
+              {d.order?.order_number ?? '—'}
             </Link>,
-            <span key="recipient">{(d as any).recipient?.full_name ?? '—'}</span>,
+            <span key="recipient">{d.recipient?.full_name ?? '—'}</span>,
             <span key="type" className="capitalize">{d.delivery_type ?? '—'}</span>,
             <StatusBadge key="status" status={d.status} />,
             <span key="date">
