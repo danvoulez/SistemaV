@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { PageHeader } from '@/components/page-header';
 import { Btn } from '@/components/btn';
 import { EmptyState } from '@/components/empty-state';
 import { Plus, FileText, Trash2, X } from 'lucide-react';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 interface Note {
   id: string;
@@ -28,7 +29,7 @@ export default function OpsNotesPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
 
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -57,12 +58,13 @@ export default function OpsNotesPage() {
 
       if (notesErr) throw notesErr;
       setNotes(data ?? []);
-    } catch (e: any) {
-      setError(e.message ?? 'Erro ao carregar notas.');
+    } catch (error: unknown) {
+      const message = (error as PostgrestError)?.message;
+      setError(message ?? 'Erro ao carregar notas.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     loadData();
@@ -85,8 +87,9 @@ export default function OpsNotesPage() {
       setFormContent('');
       setShowForm(false);
       await loadData();
-    } catch (e: any) {
-      setError(e.message ?? 'Erro ao criar nota.');
+    } catch (error: unknown) {
+      const message = (error as PostgrestError)?.message;
+      setError(message ?? 'Erro ao criar nota.');
     } finally {
       setSubmitting(false);
     }
@@ -101,8 +104,9 @@ export default function OpsNotesPage() {
         .eq('id', noteId)
         .eq('created_by', userId);
       setNotes((prev) => prev.filter((n) => n.id !== noteId));
-    } catch (e: any) {
-      setError(e.message ?? 'Erro ao excluir nota.');
+    } catch (error: unknown) {
+      const message = (error as PostgrestError)?.message;
+      setError(message ?? 'Erro ao excluir nota.');
     }
   };
 

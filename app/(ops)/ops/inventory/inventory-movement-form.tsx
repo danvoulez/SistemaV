@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { Btn } from '@/components/btn';
 import { PlusCircle } from 'lucide-react';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 interface Location {
   id: string;
@@ -75,8 +76,9 @@ export function InventoryMovementForm({ locations, userId }: Props) {
       setQuantity('');
       setUnitCost('');
       router.refresh();
-    } catch (e: any) {
-      setError(e.message ?? 'Erro ao registrar movimentação.');
+    } catch (error: unknown) {
+      const message = (error as PostgrestError)?.message;
+      setError(message ?? 'Erro ao registrar movimentação.');
     } finally {
       setLoading(false);
     }
