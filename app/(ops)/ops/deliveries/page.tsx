@@ -63,8 +63,8 @@ export default async function OpsDeliveriesPage() {
                   </div>
                 ) : (
                   group.items.map((d) => {
-                    const order = (d as any).order;
-                    const recipient = (d as any).recipient;
+                    const order = d.order;
+                    const recipient = d.recipient;
                     return (
                       <Link key={d.id} href={`/ops/deliveries/${d.id}`}>
                         <div className={`rounded-xl border-2 p-4 hover:shadow-md transition-shadow cursor-pointer ${group.color}`}>

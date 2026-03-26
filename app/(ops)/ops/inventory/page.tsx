@@ -34,8 +34,8 @@ export default async function OpsInventoryPage() {
           <DataTable
             headers={['Produto', 'SKU', 'Localização', 'Disponível', 'Em Mãos', 'Reservado']}
             rows={balances.map((b) => {
-              const merch = (b as any).merchandise;
-              const loc = (b as any).location;
+              const merch = b.merchandise;
+              const loc = b.location;
               const title = merch?.object?.title ?? merch?.sku ?? '—';
               const isLow = (b.quantity_available ?? 0) <= 0;
               return [

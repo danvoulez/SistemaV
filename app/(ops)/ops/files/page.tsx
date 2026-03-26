@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import type { PostgrestError } from '@supabase/supabase-js';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { PageHeader } from '@/components/page-header';
 import { Btn } from '@/components/btn';
@@ -31,9 +32,9 @@ export default function OpsFilesPage() {
   const [description, setDescription] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
-  const loadFiles = async () => {
+  const loadFiles = useCallback(async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -55,16 +56,17 @@ export default function OpsFilesPage() {
 
       if (filesErr) throw filesErr;
       setFiles(data ?? []);
-    } catch (e: any) {
-      setError(e.message ?? 'Erro ao carregar arquivos.');
+    } catch (error: unknown) {
+      const message = (error as PostgrestError)?.message;
+      setError(message ?? 'Erro ao carregar arquivos.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
 
   useEffect(() => {
     loadFiles();
-  }, []);
+  }, [loadFiles]);
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,8 +120,9 @@ export default function OpsFilesPage() {
       if (fileInputRef.current) fileInputRef.current.value = '';
       setSuccessMsg('Arquivo enviado com sucesso!');
       await loadFiles();
-    } catch (e: any) {
-      setError(e.message ?? 'Erro ao fazer upload.');
+    } catch (error: unknown) {
+      const message = (error as PostgrestError)?.message;
+      setError(message ?? 'Erro ao fazer upload.');
     } finally {
       setUploading(false);
     }
